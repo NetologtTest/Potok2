@@ -22,10 +22,9 @@ public class Main {
 
     public static void main(String[] args) {
 
+
         for (int i = 0; i < ROUTES; i++) {
-
             new Thread(() -> {
-
                 String s = generateRoute("RLRFR", 100);
 
                 int count = 0;
@@ -35,6 +34,7 @@ public class Main {
                     }
                 }
                 synchronized (sizeToFreq) {
+
                     if (sizeToFreq.containsKey(count)) {
                         sizeToFreq.replace(count, sizeToFreq.get(count) + 1);
 
@@ -45,13 +45,52 @@ public class Main {
                     } else {
                         sizeToFreq.put(count, 1);
                     }
-
+                    sizeToFreq.notify();
                 }
+
             }).start();
 
+
+            Runnable task = () -> {
+                while (!Thread.interrupted()) {
+                    try {
+                        sizeToFreq.wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                System.out.println("Ð‘Ð¾Ð»ÑŒÑˆÐµ Ð²ÑÐµÐ³Ð¾ R " + maxKey + ", " + maxValue + " Ñ€Ð°Ð·");
+            };
+
+            Thread thread = new Thread(task);
+            thread.start();
+            thread.interrupt();
+
+//            new Thread(() -> {
+//                synchronized (sizeToFreq) {
+//                    while (!Thread.interrupted()) {
+//                        try {
+//                            sizeToFreq.wait();
+//                        } catch (InterruptedException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//
+//                        System.out.println("Ð‘Ð¾Ð»ÑŒÑˆÐµ Ð²ÑÐµÐ³Ð¾ R " + maxKey + ", " + maxValue + " Ñ€Ð°Ð·");
+//
+//
+//
+//                        }
+//                    }
+//
+//
+//
+//            }).start();
+
         }
-        System.out.println("Áîëüøå âñåãî R " + maxKey + ", " + maxValue + " ðàç");
-        System.out.println("Äðóãèå ðàçìåðû:");
-        sizeToFreq.forEach((key, value) -> System.out.println(key + "(" + value + " ðàç" + ")"));
+
+
+        // System.out.println("Ð”Ñ€ÑƒÐ³Ð¸Ðµ Ñ€Ð°Ð·Ð¼ÐµÑ€Ñ‹:");
+        //   sizeToFreq.forEach((key, value) -> System.out.println(key + "(" + value + " Ñ€Ð°Ð·" + ")"));
     }
+
 }
